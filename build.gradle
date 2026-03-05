@@ -1,0 +1,145 @@
+// build.gradle — Spring Boot 프로젝트 빌드 설정
+// Week 02 — 개발환경 설정 + Gradle 빌드 도구
+// Week 12 — Jib 플러그인 추가 (주석 해제하여 활성화)
+// Spring Boot 3.x + Java 21
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.11'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco'  // 테스트 커버리지 측정 (Week 13)
+
+    // === 🟡 심화: Jib 플러그인 (Week 12 — Dockerfile 없이 컨테이너 이미지 빌드) ===
+    // 아래 주석을 해제하면 활성화된다.
+    // 사용법: ./gradlew jibDockerBuild  (Docker Desktop 실행 필요)
+    id 'com.google.cloud.tools.jib' version '3.4.0'
+}
+
+group = 'kr.ac.tukorea'
+version = '1.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)  // Java 21 사용
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()  // Maven 중앙 저장소에서 의존성 다운로드
+}
+
+dependencies {
+    // === Spring Boot 핵심 ===
+    implementation 'org.springframework.boot:spring-boot-starter-web'        // Spring MVC (Week 10)
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'  // Thymeleaf 뷰 엔진 (Week 06)
+    implementation 'org.springframework.boot:spring-boot-starter-aop'        // AOP 지원 (Week 05)
+    implementation 'org.springframework.boot:spring-boot-starter-validation' // Bean Validation
+
+    // === 데이터베이스 ===
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'  // MyBatis (Week 09)
+    runtimeOnly 'com.mysql:mysql-connector-j'                                   // MySQL 드라이버
+    runtimeOnly 'com.h2database:h2'                                               // H2 인메모리 DB (프로파일: h2)
+
+    // === Lombok — 반복 코드 제거 (Getter/Setter/Slf4j 등) ===
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // === API 문서화 — springdoc-openapi / Swagger UI (Week 10 심화) ===
+    // Spring Boot 3.x에서는 반드시 springdoc-openapi-starter-webmvc-ui 2.x 버전 사용
+    // 구버전 springfox 또는 springdoc-openapi-ui 1.x는 Spring Boot 3.x와 호환 안 됨
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+
+    // === 보안 — BCrypt 암호화 (Week 07 심화) ===
+    // spring-boot-starter-security 전체가 아닌 crypto 모듈만 사용 (Security 자동 설정 미적용)
+    implementation 'org.springframework.security:spring-security-crypto'
+
+    // === 개발 편의 ===
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'  // 자동 재시작, 라이브 리로드
+
+    // === 테스트 ===
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()  // JUnit 5 사용
+    finalizedBy jacocoTestReport  // 테스트 완료 후 커버리지 리포트 자동 생성
+}
+
+// === JaCoCo 테스트 커버리지 설정 ===
+// 실행: ./gradlew test jacocoTestReport
+// 리포트 위치: build/reports/jacoco/test/html/index.html
+jacoco {
+    toolVersion = '0.8.12'
+}
+
+jacocoTestReport {
+    dependsOn test  // 리포트 생성 전 테스트 실행 보장
+    reports {
+        xml.required = true   // CI 도구 연동용 (GitHub Actions 등)
+        html.required = true  // 브라우저에서 확인 가능한 HTML 리포트
+    }
+    // 커버리지 측정 제외 대상 (자동 생성 코드, 설정 클래스)
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/SwFrameworkApplication.class',  // 진입점
+                '**/dto/**',                        // DTO (순수 데이터 객체)
+                '**/config/**',                     // 설정 클래스
+                '**/aspect/**',                     // AOP (실행 시간 측정용)
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                // 전체 명령어(instruction) 커버리지 최소 60% 요구
+                // 실습 프로젝트 기준 — 실무에서는 80% 이상 권장
+                minimum = 0.60
+            }
+        }
+        rule {
+            element = 'CLASS'
+            includes = [
+                'kr.ac.tukorea.swframework.service.*',
+                'kr.ac.tukorea.swframework.controller.*',
+            ]
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.50  // 핵심 클래스(Service/Controller)는 라인 커버리지 50% 이상
+            }
+        }
+    }
+}
+
+// === 🟡 심화: Jib 플러그인 설정 (Week 12) ===
+// plugins 블록에서 Jib 플러그인을 활성화한 후 아래 설정이 적용된다.
+// 아래 블록 전체 주석을 해제하여 사용한다.
+//
+ jib {
+     from {
+         image = 'eclipse-temurin:21-jre'          // 베이스 이미지 (JRE만 포함)
+     }
+     to {
+         image = 'swframework'                      // 생성할 이미지 이름
+         tags = ['latest', '1.0']                   // 이미지 태그
+     }
+     container {
+         mainClass = 'kr.ac.tukorea.swframework.SwFrameworkApplication'
+         ports = ['8080']
+         environment = [
+             'SPRING_PROFILES_ACTIVE': 'docker'    // Docker 프로파일 활성화
+         ]
+         jvmFlags = ['-Xms256m', '-Xmx512m']       // JVM 메모리 설정
+     }
+ }

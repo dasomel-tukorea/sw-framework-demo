@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<!--
+  src/main/resources/templates/error/404.html
+  Week 10 — 전역 예외 처리 커스텀 에러 페이지
+
+  GlobalExceptionHandler.handleNotFound()가 "error/404" 뷰 이름을 반환할 때 렌더링된다.
+  ${message}: GlobalExceptionHandler에서 model.addAttribute("message", ...) 로 전달된 메시지
+-->
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{error.404.title}">페이지를 찾을 수 없습니다</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <style>
+        .error-container {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 0;
+        }
+        .error-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin: 16px 0;
+        }
+        .error-message {
+            color: #7f8c8d;
+            margin-bottom: 32px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-container">
+            <!-- 404 에러 코드 -->
+            <p class="error-code">404</p>
+            <h2 class="error-title" th:text="#{error.404.title}">페이지를 찾을 수 없습니다</h2>
+            <!--
+                GlobalExceptionHandler에서 전달한 에러 메시지 표시
+                th:text 사용으로 XSS 공격 자동 방어
+            -->
+            <p class="error-message" th:text="${message} ?: #{error.404.message}">요청한 데이터를 찾을 수 없습니다.</p>
+            <!-- 목록으로 돌아가기 버튼 -->
+            <a th:href="@{/board/list}" class="btn" th:text="#{error.back}">목록으로 돌아가기</a>
+        </div>
+    </div>
+</body>
+</html>

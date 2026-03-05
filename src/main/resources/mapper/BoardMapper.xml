@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+  BoardMapper.xml — 게시판 CRUD + 검색 + 페이징 SQL 매핑
+  Week 09 — MyBatis 기초 CRUD
+  Week 10 — 검색 기능 추가
+  Week 11 — 페이징 + 정렬 + Dynamic SQL 고급 활용 + 파일 업로드 컬럼 추가
+
+  namespace는 Java 인터페이스의 FQCN과 정확히 일치해야 한다.
+-->
+<mapper namespace="kr.ac.tukorea.swframework.mapper.BoardMapper">
+
+    <!-- ============================================ -->
+    <!-- 공통 검색 조건 (재사용을 위해 sql 태그로 분리)  -->
+    <!-- Week 11 — Dynamic SQL의 <sql> + <include>   -->
+    <!-- ============================================ -->
+    <sql id="searchCondition">
+        <where>
+            <!-- 검색 조건: 제목 검색 -->
+            <if test="searchType == 'title' and keyword != null and keyword != ''">
+                AND title LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+            <!-- 검색 조건: 내용 검색 -->
+            <if test="searchType == 'content' and keyword != null and keyword != ''">
+                AND content LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- ============================================ -->
+    <!-- 게시글 목록: 검색 + 정렬 + 페이징            -->
+    <!-- Week 11 — LIMIT/OFFSET 페이징               -->
+    <!-- ============================================ -->
+    <select id="findAllWithPaging" parameterType="PageDTO" resultType="BoardDTO">
+        SELECT id, title, content, author, created_at, updated_at
+        FROM board
+        <include refid="searchCondition"/>
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'title'">title ASC</when>
+            <when test="sortBy == 'author'">author ASC</when>
+            <otherwise>id DESC</otherwise>  <!-- 기본값: 최신순 -->
+        </choose>
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- ============================================ -->
+    <!-- 전체 게시글 수 (검색 조건 반영) — 페이지 계산용 -->
+    <!-- ============================================ -->
+    <select id="countAll" parameterType="PageDTO" resultType="int">
+        SELECT COUNT(*) FROM board
+        <include refid="searchCondition"/>
+    </select>
+
+    <!-- ============================================ -->
+    <!-- 게시글 상세 조회 (파일 컬럼 포함)             -->
+    <!-- Week 09 — 기본 SELECT                        -->
+    <!-- Week 11 — file_name, saved_name 자동 매핑    -->
+    <!-- camelCase 설정으로 file_name → fileName 변환  -->
+    <!-- ============================================ -->
+    <select id="findById" parameterType="long" resultType="BoardDTO">
+        SELECT id, title, content, author, created_at, updated_at,
+               file_name, saved_name
+        FROM board
+        WHERE id = #{id}
+    </select>
+
+    <!-- ============================================ -->
+    <!-- 게시글 등록 (첨부파일 정보 포함)              -->
+    <!-- Week 09 — INSERT                             -->
+    <!-- Week 11 — file_name, saved_name 컬럼 추가   -->
+    <!-- ============================================ -->
+    <insert id="insert" parameterType="BoardDTO">
+        INSERT INTO board (title, content, author, file_name, saved_name)
+        VALUES (#{title}, #{content}, #{author}, #{fileName}, #{savedName})
+    </insert>
+
+    <!-- ============================================ -->
+    <!-- 게시글 수정                                   -->
+    <!-- Week 09 — UPDATE                             -->
+    <!-- ============================================ -->
+    <update id="update" parameterType="BoardDTO">
+        UPDATE board
+        SET title = #{title}, content = #{content}
+        WHERE id = #{id}
+    </update>
+
+    <!-- ============================================ -->
+    <!-- 게시글 삭제                                   -->
+    <!-- Week 09 — DELETE                             -->
+    <!-- ============================================ -->
+    <delete id="delete" parameterType="long">
+        DELETE FROM board WHERE id = #{id}
+    </delete>
+
+    <!-- ============================================ -->
+    <!-- null이 아닌 컬럼만 선택적 UPDATE (<set>)     -->
+    <!-- Week 09 — Dynamic SQL 심화                   -->
+    <!-- <set>은 마지막 쉼표(,)를 자동으로 제거한다    -->
+    <!-- ============================================ -->
+    <update id="updateSelective" parameterType="BoardDTO">
+        UPDATE board
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <!-- ============================================ -->
+    <!-- 여러 ID로 한 번에 조회 (<foreach> — IN 절)   -->
+    <!-- Week 09 — Dynamic SQL 심화                   -->
+    <!-- ============================================ -->
+    <select id="findByIds" resultType="BoardDTO">
+        SELECT id, title, content, author, created_at, updated_at
+        FROM board
+        WHERE id IN
+        <foreach item="id" collection="ids"
+                 open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!-- ============================================ -->
+    <!-- 제목/작성자 조건 복합 검색 (<trim>)           -->
+    <!-- Week 09 — Dynamic SQL 심화                   -->
+    <!-- <where>와 동일하지만 접두사/접미사 커스터마이징 가능 -->
+    <!-- ============================================ -->
+    <select id="findByCondition" parameterType="map" resultType="BoardDTO">
+        SELECT id, title, content, author, created_at, updated_at
+        FROM board
+        <trim prefix="WHERE" prefixOverrides="AND |OR ">
+            <if test="title != null and title != ''">
+                AND title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="author != null and author != ''">
+                AND author = #{author}
+            </if>
+        </trim>
+        ORDER BY id DESC
+    </select>
+
+</mapper>

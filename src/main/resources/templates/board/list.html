@@ -1,0 +1,119 @@
+<!-- list.html — 게시판 목록 화면 (페이징 + 검색 + 정렬) -->
+<!-- Week 10 — Spring MVC 게시판 CRUD -->
+<!-- Week 11 — 페이징 처리 -->
+<!-- 경로: src/main/resources/templates/board/list.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{board.list.title}">게시판 목록</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+    <div class="container">
+        <h1 th:text="#{board.list.title}">게시판</h1>
+
+        <!-- 상단 네비게이션 -->
+        <div class="top-bar">
+            <span>
+                환영합니다,
+                <strong th:text="${session.loginUser}">사용자</strong><span th:text="#{layout.welcome.suffix}">님</span>
+            </span>
+            <span>
+                <a th:href="@{/}" th:text="#{nav.home}">홈</a> |
+                <form th:action="@{/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="link-btn" th:text="#{nav.logout}">로그아웃</button>
+                </form>
+                |
+                <a th:href="@{/board/list(lang='ko')}" th:text="#{lang.ko}">한국어</a> |
+                <a th:href="@{/board/list(lang='en')}" th:text="#{lang.en}">English</a>
+            </span>
+        </div>
+
+        <!-- 검색 폼 -->
+        <form class="search-box" th:action="@{/board/list}" method="get">
+            <select name="searchType">
+                <option value="title" th:selected="${page.searchType == 'title'}" th:text="#{board.search.type.title}">제목</option>
+                <option value="content" th:selected="${page.searchType == 'content'}" th:text="#{board.search.type.content}">내용</option>
+            </select>
+            <input type="text" name="keyword" th:value="${page.keyword}" th:placeholder="#{board.search.placeholder}"/>
+            <input type="hidden" name="sortBy" th:value="${page.sortBy}"/>
+            <button type="submit" class="btn" th:text="#{board.search.submit}">검색</button>
+        </form>
+
+        <!-- 게시글 목록 테이블 -->
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:60px;" th:text="#{board.list.no}">번호</th>
+                    <th>
+                        <span th:text="#{board.list.title.col}">제목</span>
+                        <a class="sort-link"
+                           th:href="@{/board/list(page=${page.page}, searchType=${page.searchType}, keyword=${page.keyword}, sortBy='title')}"
+                           th:text="#{board.list.sort}">[정렬]</a>
+                    </th>
+                    <th style="width:100px;">
+                        <span th:text="#{board.list.author}">작성자</span>
+                        <a class="sort-link"
+                           th:href="@{/board/list(page=${page.page}, searchType=${page.searchType}, keyword=${page.keyword}, sortBy='author')}"
+                           th:text="#{board.list.sort}">[정렬]</a>
+                    </th>
+                    <th style="width:110px;" th:text="#{board.list.date}">작성일</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- th:each — 반복 출력: boardList에서 하나씩 꺼내 board 변수에 담음 -->
+                <tr th:each="board : ${boardList}">
+                    <td th:text="${board.id}">1</td>
+                    <td style="text-align:left;">
+                        <a th:href="@{/board/detail/{id}(id=${board.id})}" th:text="${board.title}">제목</a>
+                    </td>
+                    <td th:text="${board.author}">작성자</td>
+                    <td th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd')}">2026-01-01</td>
+                </tr>
+                <!-- 게시글이 없을 때 표시 -->
+                <tr th:if="${#lists.isEmpty(boardList)}">
+                    <td colspan="4" th:text="#{board.list.empty}">게시글이 없습니다.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- ========================================== -->
+        <!-- 페이징 네비게이션 (Week 11)                  -->
+        <!-- ========================================== -->
+        <div class="pagination" th:if="${page.totalPages > 0}">
+            <!-- 이전 페이지 -->
+            <a th:if="${page.hasPrev()}"
+               th:href="@{/board/list(page=${page.page - 1}, searchType=${page.searchType}, keyword=${page.keyword}, sortBy=${page.sortBy})}"
+               th:text="'&laquo; ' + #{board.paging.prev}">
+                &laquo; 이전
+            </a>
+            <span th:unless="${page.hasPrev()}" class="disabled" th:text="'&laquo; ' + #{board.paging.prev}">&laquo; 이전</span>
+
+            <!-- 페이지 번호 -->
+            <th:block th:each="i : ${#numbers.sequence(1, page.totalPages)}">
+                <span th:if="${i == page.page}" class="active" th:text="${i}">1</span>
+                <a th:unless="${i == page.page}"
+                   th:href="@{/board/list(page=${i}, searchType=${page.searchType}, keyword=${page.keyword}, sortBy=${page.sortBy})}"
+                   th:text="${i}">1</a>
+            </th:block>
+
+            <!-- 다음 페이지 -->
+            <a th:if="${page.hasNext()}"
+               th:href="@{/board/list(page=${page.page + 1}, searchType=${page.searchType}, keyword=${page.keyword}, sortBy=${page.sortBy})}"
+               th:text="#{board.paging.next} + ' &raquo;'">
+                다음 &raquo;
+            </a>
+            <span th:unless="${page.hasNext()}" class="disabled" th:text="#{board.paging.next} + ' &raquo;'">다음 &raquo;</span>
+        </div>
+
+        <!-- 페이지 정보 -->
+        <p class="page-info"
+           th:text="#{board.list.pageinfo(${page.totalCount}, ${page.page}, ${page.totalPages})}">
+        </p>
+
+        <br/>
+        <a th:href="@{/board/create}" class="btn" th:text="#{board.create}">글쓰기</a>
+    </div>
+</body>
+</html>

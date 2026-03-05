@@ -1,0 +1,55 @@
+# application.yml — Spring Boot 기본 설정 (로컬 개발 환경)
+# Week 02 — 개발환경 설정
+# Week 09 — MyBatis 설정
+# Week 11 — 파일 업로드 설정 추가
+
+server:
+  port: 8080  # 서버 포트 (기본값 8080)
+  servlet:
+    session:
+      timeout: 30m        # 세션 타임아웃 (기본값 30분)
+      cookie:
+        http-only: true    # JavaScript에서 세션 쿠키 접근 차단 → XSS 방어 (Week 07)
+        secure: false      # HTTPS 연결에서만 쿠키 전송 → 운영 환경에서는 true로 설정
+        same-site: lax     # 외부 도메인 요청 시 쿠키 전송 제한 → CSRF 방어 (Lax: 기본 적절)
+
+spring:
+  # === 데이터소스 설정 (MySQL 연결) ===
+  datasource:
+    url: jdbc:mysql://localhost:3306/swframework?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # === Thymeleaf 설정 (Week 06) ===
+  thymeleaf:
+    cache: false               # 개발 중 캐시 비활성화 (수정 즉시 반영)
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+
+  # === 파일 업로드 설정 (Week 11) ===
+  servlet:
+    multipart:
+      max-file-size: 10MB        # 개별 파일 최대 크기 (기본 1MB → 10MB로 상향)
+      max-request-size: 20MB     # 전체 요청 최대 크기 (여러 파일 합산)
+
+# === MyBatis 설정 (Week 09) ===
+mybatis:
+  mapper-locations: classpath:mapper/*.xml          # XML Mapper 파일 위치
+  type-aliases-package: kr.ac.tukorea.swframework.dto  # DTO 패키지 별칭 (XML에서 패키지명 생략 가능)
+  configuration:
+    map-underscore-to-camel-case: true              # DB의 snake_case → Java의 camelCase 자동 변환
+    # 예: created_at → createdAt, file_name → fileName, saved_name → savedName
+
+# === 파일 저장 경로 설정 (Week 11) ===
+# 프로젝트 루트의 uploads/ 디렉토리에 첨부파일 저장
+# 운영 환경에서는 절대 경로 또는 AWS S3 등 외부 스토리지로 변경 필요
+file:
+  upload-dir: ./uploads
+
+# === 로깅 설정 ===
+logging:
+  level:
+    kr.ac.tukorea.swframework: DEBUG                # 프로젝트 패키지 DEBUG 레벨
+    kr.ac.tukorea.swframework.mapper: TRACE         # MyBatis SQL 로그 출력

@@ -1,0 +1,81 @@
+<!-- login.html — 로그인 페이지 -->
+<!-- Week 07 — 세션 처리 (로그인/로그아웃) -->
+<!-- 경로: src/main/resources/templates/login.html -->
+<!--
+    학습 포인트:
+    1. Form → @PostMapping("/login")으로 데이터 전송 (6주차 복습)
+    2. th:if — 로그인 실패 시 에러 메시지 조건부 출력
+    3. th:action — Form 전송 URL 지정
+    4. name 속성 — @RequestParam과 매핑되는 키 이름
+
+    테스트 계정: admin / 1234
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{login.title}">로그인</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 350px;
+        }
+        h1 { text-align: center; color: #333; }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h1 th:text="#{login.title}">로그인</h1>
+
+    <!--
+        th:if="${error}" — error 속성이 Model에 존재할 때만 표시
+        로그인 실패 시 Controller에서 model.addAttribute("error", "메시지")로 전달
+    -->
+    <p th:if="${error}" class="error-message" th:text="${error}"></p>
+
+    <!--
+        th:action="@{/login}" — POST /login으로 전송
+        name="loginId" — Controller의 @RequestParam String loginId와 매핑
+        name="password" — Controller의 @RequestParam String password와 매핑
+    -->
+    <form th:action="@{/login}" method="post">
+        <div class="form-group">
+            <label for="loginId" th:text="#{login.id}">아이디</label>
+            <input type="text" id="loginId" name="loginId"
+                   placeholder="admin" required>
+        </div>
+        <div class="form-group">
+            <label for="password" th:text="#{login.password}">비밀번호</label>
+            <input type="password" id="password" name="password"
+                   placeholder="1234" required>
+        </div>
+        <button type="submit" class="btn" style="width:100%;" th:text="#{login.submit}">로그인</button>
+    </form>
+
+    <p style="text-align:center; margin-top:15px; color:#999; font-size:13px;" th:text="#{login.hint}">
+        테스트 계정: admin / 1234
+    </p>
+    <p style="text-align:center;">
+        <a th:href="@{/}" th:text="#{nav.home}">홈으로 돌아가기</a>
+    </p>
+    <p style="text-align:center; margin-top:10px; font-size:13px;">
+        <a th:href="@{/login(lang='ko')}" th:text="#{lang.ko}">한국어</a> |
+        <a th:href="@{/login(lang='en')}" th:text="#{lang.en}">English</a>
+    </p>
+</div>
+
+</body>
+</html>

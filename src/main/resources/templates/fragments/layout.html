@@ -1,0 +1,61 @@
+<!-- src/main/resources/templates/fragments/layout.html -->
+<!--
+    공통 레이아웃 Fragment 정의 파일 (Week 06 — Thymeleaf Fragment)
+
+    사용법:
+      헤더 삽입: <div th:insert="~{fragments/layout :: header}"></div>
+      헤더 교체: <header th:replace="~{fragments/layout :: header}"></header>
+      푸터 교체: <footer th:replace="~{fragments/layout :: footer}"></footer>
+
+    th:insert  — 현재 태그 안에 Fragment를 삽입 (감싸는 태그 유지)
+    th:replace — 현재 태그를 Fragment로 교체 (감싸는 태그 제거)
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <!-- title은 각 페이지에서 덮어씀; 기본값 제공 -->
+    <title th:text="${title} ?: #{site.title}">SW 프레임워크</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<!--
+    공통 헤더 Fragment 정의
+    - th:fragment="header" 로 이름을 지정
+    - 다른 템플릿에서 ~{fragments/layout :: header} 로 참조
+-->
+<header th:fragment="header">
+    <nav>
+        <!-- 홈 링크 -->
+        <a th:href="@{/}" th:text="#{nav.home}">홈</a>
+
+        <!-- 학생 목록 링크 -->
+        <a th:href="@{/students}" th:text="#{nav.students}">학생 목록</a>
+
+        <!-- 로그인 상태에 따른 버튼 분기 -->
+        <!-- session.loginUser: 7주차 로그인 실습에서 세션에 저장하는 키 -->
+        <span th:if="${session.loginUser != null}">
+            <!-- 로그인된 사용자 이름 표시 -->
+            <span>[[${session.loginUser}]]</span><span th:text="#{layout.welcome.suffix}">님 환영합니다.</span>
+            <!-- 로그아웃 버튼 — POST 방식 (GET 방식 로그아웃은 CSRF 취약점) -->
+            <form th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" th:text="#{nav.logout}">로그아웃</button>
+            </form>
+        </span>
+
+        <!-- 비로그인 상태: 로그인 링크 -->
+        <a th:unless="${session.loginUser != null}" th:href="@{/login}" th:text="#{nav.login}">로그인</a>
+    </nav>
+</header>
+
+<!--
+    공통 푸터 Fragment 정의
+    - th:fragment="footer" 로 이름을 지정
+-->
+<footer th:fragment="footer">
+    <p th:text="#{layout.footer}">© 2026 한국공학대학교 IT경영전공 | SW 프레임워크 실습</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!-- form.html — 게시글 등록/수정 폼 (등록과 수정을 하나의 폼으로 처리) -->
+<!-- Week 06 — Thymeleaf Form 바인딩 -->
+<!-- Week 10 — Spring MVC 패턴 게시판 CRUD -->
+<!-- Week 11 — 파일 업로드 지원 (enctype="multipart/form-data", file input 추가) -->
+<!-- 경로: src/main/resources/templates/board/form.html -->
+<!--
+    학습 포인트:
+    1. th:action — Form 전송 URL 지정 (@{} 링크 표현식)
+    2. th:value — 기존 데이터를 input에 바인딩
+    3. 조건 분기 — id 유무로 등록/수정 구분
+    4. th:readonly — 수정 시 작성자 필드 읽기 전용
+-->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${board.id != null} ? #{board.form.edit.title} : #{board.form.create.title}">게시글 작성/수정</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <style>
+        .custom-file-input { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+        .file-input-hidden { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+        .file-input-label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .file-choose-btn { display: inline-block; padding: 6px 14px; background: #5a9bd5; color: white; border-radius: 4px; font-size: 0.9em; white-space: nowrap; }
+        .file-choose-btn:hover { background: #3a7cbd; }
+        .file-name-display { color: #666; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- id 유무로 등록/수정 구분 -->
+        <h1 th:text="${board.id != null} ? #{board.form.edit.title} : #{board.form.create.title}">게시글 작성</h1>
+
+        <!-- 상단 네비게이션 -->
+        <div class="top-bar">
+            <span>
+                <a th:href="@{/}" th:text="#{nav.home}">홈</a> |
+                <a th:href="@{/board/list}" th:text="#{nav.board}">게시판</a>
+            </span>
+        </div>
+
+        <!--
+            th:action — 등록(POST /board/create)과 수정(POST /board/edit/{id})을 조건으로 분기
+            method="post" — HTTP POST 전송 (PRG 패턴 적용)
+            enctype="multipart/form-data" — Week 11: 파일 업로드 시 반드시 필요
+                                            없으면 파일 데이터가 서버에 전달되지 않음
+        -->
+        <form th:action="${board.id != null} ? @{/board/edit/{id}(id=${board.id})} : @{/board/create}"
+              method="post" enctype="multipart/form-data" class="board-form">
+
+            <div class="form-group">
+                <label for="title" th:text="#{board.form.title}">제목</label>
+                <input type="text" id="title" name="title"
+                       th:value="${board.title}" required th:placeholder="#{board.form.title.placeholder}"/>
+            </div>
+
+            <div class="form-group">
+                <label for="author" th:text="#{board.form.author}">작성자</label>
+                <input type="text" id="author" name="author"
+                       th:value="${board.author}"
+                       th:readonly="${board.id != null}"
+                       required th:placeholder="#{board.form.author.placeholder}"/>
+            </div>
+
+            <div class="form-group">
+                <label for="content" th:text="#{board.form.content}">내용</label>
+                <textarea id="content" name="content"
+                          required th:placeholder="#{board.form.content.placeholder}"
+                          th:text="${board.content}"></textarea>
+            </div>
+
+            <!-- 파일 첨부 (선택 항목) — Week 11 -->
+            <!-- 등록 시에만 파일 첨부 가능 (수정 시 파일 변경은 심화 구현) -->
+            <div class="form-group" th:if="${board.id == null}">
+                <label for="file" th:text="#{board.form.file}">첨부파일 (선택, 최대 10MB)</label>
+                <div class="custom-file-input">
+                    <input type="file" id="file" name="file" class="file-input-hidden"
+                           onchange="updateFileName(this)"/>
+                    <label for="file" class="file-input-label">
+                        <span class="file-choose-btn" th:text="#{board.form.file.choose}">파일 선택</span>
+                        <span class="file-name-display" id="fileNameDisplay"
+                              th:text="#{board.form.file.none}">선택한 파일 없음</span>
+                    </label>
+                </div>
+                <small th:text="#{board.form.file.hint}">지원 형식: 제한 없음 / 파일 미첨부 시 첨부파일 없음으로 등록</small>
+            </div>
+
+            <!-- 수정 시 기존 첨부파일 정보 표시 (읽기 전용) -->
+            <div class="form-group" th:if="${board.id != null and board.fileName != null}">
+                <label th:text="#{board.detail.file}">기존 첨부파일</label>
+                <span th:text="${board.fileName}" class="text-muted">파일명</span>
+                <small>(수정 시 파일 변경 불가 — 삭제 후 재등록 필요)</small>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn"
+                        th:text="${board.id != null} ? #{board.form.submit.edit} : #{board.form.submit.create}">등록</button>
+                <a th:href="@{/board/list}" class="btn btn-list" th:text="#{board.form.cancel}">취소</a>
+            </div>
+        </form>
+    </div>
+<script>
+function updateFileName(input) {
+    var display = document.getElementById('fileNameDisplay');
+    if (input.files && input.files.length > 0) {
+        display.textContent = input.files[0].name;
+    } else {
+        display.textContent = display.getAttribute('data-none-text') || '선택한 파일 없음';
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+// settings.gradle — 프로젝트 이름 설정
+rootProject.name = 'demo'

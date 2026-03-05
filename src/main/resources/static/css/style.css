@@ -1,0 +1,345 @@
+/* style.css — 게시판 프로젝트 공통 스타일시트 */
+/* Week 06 — Thymeleaf + CSS */
+/* 경로: src/main/resources/static/css/style.css */
+
+/* === 기본 레이아웃 === */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+h1 {
+    color: #2c3e50;
+    border-bottom: 2px solid #4CAF50;
+    padding-bottom: 10px;
+}
+
+h2 {
+    color: #34495e;
+}
+
+a {
+    text-decoration: none;
+    color: #1a73e8;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
+}
+
+/* === 상단 네비게이션 바 === */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    color: #666;
+}
+
+.link-btn {
+    background: none;
+    border: none;
+    color: #1a73e8;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 0;
+}
+
+.link-btn:hover {
+    text-decoration: underline;
+}
+
+/* === 버튼 스타일 === */
+.btn {
+    display: inline-block;
+    padding: 8px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn:hover {
+    background-color: #45a049;
+    text-decoration: none;
+    color: white;
+}
+
+.btn-edit {
+    background-color: #2196F3;
+}
+
+.btn-edit:hover {
+    background-color: #1976D2;
+}
+
+.btn-delete {
+    background-color: #f44336;
+}
+
+.btn-delete:hover {
+    background-color: #d32f2f;
+}
+
+.btn-list {
+    background-color: #666;
+}
+
+.btn-list:hover {
+    background-color: #555;
+}
+
+.btn-logout {
+    background-color: #ff9800;
+}
+
+.btn-logout:hover {
+    background-color: #f57c00;
+}
+
+.button-group {
+    margin-top: 20px;
+}
+
+.button-group .btn {
+    margin-right: 5px;
+}
+
+/* === 네비게이션 링크 === */
+.nav-links {
+    margin: 20px 0;
+    text-align: center;
+}
+
+/* === 테이블 스타일 === */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #4CAF50;
+    color: white;
+    font-weight: normal;
+}
+
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* === 검색 폼 === */
+.search-box {
+    margin-top: 20px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.search-box select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.search-box input[type="text"] {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 250px;
+}
+
+/* === 페이징 네비게이션 === */
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.pagination a, .pagination span {
+    display: inline-block;
+    padding: 8px 14px;
+    margin: 0 2px;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    color: #333;
+    border-radius: 4px;
+}
+
+.pagination a:hover {
+    background-color: #f1f1f1;
+    text-decoration: none;
+}
+
+.pagination .active {
+    background-color: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.pagination .disabled {
+    color: #ccc;
+    pointer-events: none;
+}
+
+.page-info {
+    text-align: center;
+    color: #666;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* === 정렬 링크 === */
+.sort-link {
+    font-size: 11px;
+    color: #ccc;
+    cursor: pointer;
+}
+
+.sort-link:hover {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+/* === 폼 스타일 === */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    height: 200px;
+    resize: vertical;
+}
+
+.board-form input[readonly] {
+    background-color: #f5f5f5;
+    color: #999;
+}
+
+/* === 상세 페이지 === */
+.detail-section {
+    margin-top: 20px;
+}
+
+.detail-section .field {
+    margin-bottom: 15px;
+}
+
+.detail-section .label {
+    font-weight: bold;
+    color: #333;
+    margin-right: 10px;
+}
+
+.content-box {
+    padding: 20px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-height: 150px;
+    margin-top: 5px;
+    white-space: pre-wrap;
+    line-height: 1.8;
+}
+
+/* === 에러 메시지 === */
+.error-message {
+    color: #e74c3c;
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+/* === 정보 섹션 (홈페이지) === */
+.info-section {
+    margin-top: 20px;
+}
+
+.info-section table {
+    margin-top: 10px;
+}
+
+.info-section th {
+    background-color: #34495e;
+    width: 120px;
+    text-align: left;
+    padding-left: 15px;
+}
+
+.info-section td {
+    text-align: left;
+}
+
+.info-section ul {
+    padding-left: 20px;
+}
+
+.info-section li {
+    margin-bottom: 5px;
+    font-size: 14px;
+}

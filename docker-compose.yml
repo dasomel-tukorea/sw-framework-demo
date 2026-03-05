@@ -1,0 +1,33 @@
+# docker-compose.yml — Spring Boot 앱 + MySQL DB 동시 실행
+# Week 12 — Docker Compose 멀티 컨테이너 실행
+# 사용법: docker compose up -d --build
+
+services:
+  # MySQL 컨테이너
+  db:
+    image: mysql:8.0                       # MySQL 8.0 공식 이미지
+    container_name: board-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234            # root 비밀번호
+      MYSQL_DATABASE: swframework          # 자동 생성할 DB명
+    ports:
+      - "3306:3306"                        # 호스트:컨테이너 포트 매핑
+    volumes:
+      - db-data:/var/lib/mysql             # 데이터 영속화 (컨테이너 삭제해도 데이터 보존)
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql  # 초기 스키마 자동 실행
+
+  # Spring Boot 앱 컨테이너
+  app:
+    build: .                               # 현재 디렉토리의 Dockerfile 사용
+    container_name: board-app
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: db                          # 같은 네트워크의 서비스 이름으로 접근
+      DB_USER: root
+      DB_PASS: 1234
+    depends_on:
+      - db                                 # db 컨테이너가 먼저 시작된 후 실행
+
+volumes:
+  db-data:                                 # 명명된 볼륨 (데이터 보존용)

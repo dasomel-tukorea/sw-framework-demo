@@ -1,0 +1,436 @@
+### ====================================================
+### sw-framework-demo — IntelliJ HTTP Client 테스트
+### ====================================================
+### 사용법:
+###   - IntelliJ IDEA에서 이 파일을 열면 각 요청 옆에 ▶ 실행 버튼이 나타남
+###   - 서버 기동 후 실행 (기본 포트: 8080)
+###   - ### 구분자로 각 요청이 구분됨
+### ====================================================
+
+# 기본 서버 주소
+@host = http://localhost:8080
+
+
+### ============================================================
+### 1. 홈 페이지 (인터셉터 제외 경로)
+### ============================================================
+
+### 1-1. 홈 리다이렉트 (GET /)
+GET {{host}}/
+
+
+### ============================================================
+### 2. 로그인 / 로그아웃
+### ============================================================
+
+### 2-1. 로그인 폼 페이지 (GET /login)
+GET {{host}}/login
+
+
+### 2-2. 로그인 성공 — admin (POST /login)
+# 성공 시 /board/list 로 302 리다이렉트
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+loginId=admin&password=1234
+
+
+### 2-3. 로그인 성공 — guest (POST /login)
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+loginId=guest&password=1234
+
+
+### 2-4. 로그인 실패 — 잘못된 비밀번호 (POST /login)
+# 실패 시 login.html 재렌더링 (에러 메시지 포함)
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+loginId=admin&password=wrong
+
+
+### 2-5. 로그인 실패 — 존재하지 않는 사용자 (POST /login)
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+loginId=unknown&password=1234
+
+
+### 2-6. 로그아웃 (POST /logout)
+# 세션 무효화 후 /login 으로 302 리다이렉트
+POST {{host}}/logout
+
+
+### ============================================================
+### 3. 게시글 목록 조회 (세션 필요 — 먼저 로그인 후 테스트)
+### ============================================================
+
+### 3-1. 게시글 목록 — 기본 1페이지 (GET /board/list)
+# 주의: 로그인 세션 없이 접근 시 /login 으로 리다이렉트됨
+GET {{host}}/board/list
+
+
+### 3-2. 게시글 목록 — 2페이지
+GET {{host}}/board/list?page=2
+
+
+### 3-3. 게시글 목록 — 3페이지
+GET {{host}}/board/list?page=3
+
+
+### 3-4. 게시글 검색 — 제목으로 검색 (searchType=title)
+GET {{host}}/board/list?searchType=title&keyword=Spring
+
+
+### 3-5. 게시글 검색 — 내용으로 검색 (searchType=content)
+GET {{host}}/board/list?searchType=content&keyword=MyBatis
+
+
+### 3-6. 게시글 검색 — 작성자로 검색 (searchType=author)
+GET {{host}}/board/list?searchType=author&keyword=admin
+
+
+### 3-7. 페이징 + 검색 동시 적용 (2페이지, 제목 검색)
+GET {{host}}/board/list?page=2&searchType=title&keyword=Boot
+
+
+### ============================================================
+### 4. 게시글 상세 조회
+### ============================================================
+
+### 4-1. 게시글 상세 조회 — id=1 (GET /board/detail/{id})
+GET {{host}}/board/detail/1
+
+
+### 4-2. 게시글 상세 조회 — id=5
+GET {{host}}/board/detail/5
+
+
+### 4-3. 게시글 상세 조회 — 존재하지 않는 게시글 (404 처리 확인)
+# EntityNotFoundException 발생 → error/404.html 렌더링
+GET {{host}}/board/detail/99999
+
+
+### ============================================================
+### 5. 게시글 등록
+### ============================================================
+
+### 5-1. 게시글 등록 폼 페이지 (GET /board/create)
+GET {{host}}/board/create
+
+
+### 5-2. 게시글 등록 처리 — 파일 없음 (POST /board/create)
+# 성공 시 /board/list 로 302 리다이렉트 (PRG 패턴)
+POST {{host}}/board/create
+Content-Type: application/x-www-form-urlencoded
+
+title=테스트 게시글&content=HTTP Client로 작성한 테스트 게시글입니다.&author=admin
+
+
+### 5-3. 게시글 등록 — 내용 없음 (Bean Validation 실패 케이스)
+POST {{host}}/board/create
+Content-Type: application/x-www-form-urlencoded
+
+title=&content=&author=admin
+
+
+### ============================================================
+### 6. 게시글 수정
+### ============================================================
+
+### 6-1. 게시글 수정 폼 페이지 (GET /board/edit/{id})
+GET {{host}}/board/edit/1
+
+
+### 6-2. 게시글 수정 처리 (POST /board/edit/{id})
+# 성공 시 /board/detail/{id} 로 302 리다이렉트
+POST {{host}}/board/edit/1
+Content-Type: application/x-www-form-urlencoded
+
+title=수정된 제목&content=HTTP Client로 수정한 내용입니다.&author=admin
+
+
+### ============================================================
+### 7. 게시글 삭제
+### ============================================================
+
+### 7-1. 게시글 삭제 (POST /board/delete/{id})
+# 성공 시 /board/list 로 302 리다이렉트
+# 주의: 실제 데이터가 삭제되므로 테스트 게시글(마지막 id)로 실행 권장
+POST {{host}}/board/delete/25
+
+
+### ============================================================
+### 8. 파일 다운로드
+### ============================================================
+
+### 8-1. 파일 다운로드 (GET /board/download/{savedName})
+# 실제 업로드된 파일의 저장명(UUID_원본명)으로 변경하여 실행
+# 예: GET {{host}}/board/download/550e8400-e29b-41d4-a716-446655440000_test.txt
+GET {{host}}/board/download/example-uuid_sample.txt
+
+
+### 8-2. 존재하지 않는 파일 다운로드 (404 응답 확인)
+GET {{host}}/board/download/non-existent-file.txt
+
+
+### ============================================================
+### 9. 에러 페이지 확인
+### ============================================================
+
+### 9-1. 존재하지 않는 URL (404 처리)
+GET {{host}}/board/notfound
+
+
+### 9-2. 로그인 없이 보호된 페이지 접근 (→ /login 리다이렉트 확인)
+GET {{host}}/board/list
+# 세션을 지운 후 실행하면 302 리다이렉트 응답 확인 가능
+
+
+### ============================================================
+### 10. 다국어(i18n) — 언어 전환
+### ============================================================
+
+### 10-1. 영어로 전환 (lang=en 쿠키 설정)
+# CookieLocaleResolver → LOCALE 쿠키에 'en' 저장
+GET {{host}}/?lang=en
+
+
+### 10-2. 한국어로 전환 (lang=ko 쿠키 설정)
+GET {{host}}/?lang=ko
+
+
+### 10-3. 영어 상태에서 로그인 폼 확인 (lang 쿠키 유지)
+GET {{host}}/login
+Accept-Language: en
+
+
+### 10-4. 영어 상태에서 게시글 목록 확인
+GET {{host}}/board/list?lang=en
+
+
+### 10-5. 지원하지 않는 언어코드 (기본 한국어로 폴백 확인)
+GET {{host}}/?lang=fr
+
+
+### ============================================================
+### 11. Greeting 서비스 (Week 04 — IoC/DI 시연)
+### ============================================================
+
+### 11-1. 기본 인사말 (이름 파라미터 포함)
+# @Primary KoreanGreetingService 주입 확인
+GET {{host}}/greeting?name=학생
+
+
+### 11-2. 영어 이름으로 인사말
+GET {{host}}/greeting?name=Alice
+
+
+### 11-3. 이름 파라미터 없이 접근 (기본값 처리 확인)
+GET {{host}}/greeting
+
+
+### 11-4. 이름에 특수문자 포함
+GET {{host}}/greeting?name=홍길동%20(테스트)
+
+
+### ============================================================
+### 12. 페이징 엣지 케이스
+### ============================================================
+
+### 12-1. page=0 (1페이지로 처리되는지 확인)
+GET {{host}}/board/list?page=0
+
+
+### 12-2. 음수 페이지 (page=-1)
+GET {{host}}/board/list?page=-1
+
+
+### 12-3. 매우 큰 페이지 번호 (빈 목록 반환 확인)
+GET {{host}}/board/list?page=9999
+
+
+### 12-4. 페이지 파라미터 없음 (기본 1페이지)
+GET {{host}}/board/list
+
+
+### 12-5. 페이지 파라미터가 숫자가 아닌 경우
+GET {{host}}/board/list?page=abc
+
+
+### ============================================================
+### 13. 검색 엣지 케이스
+### ============================================================
+
+### 13-1. 키워드 없이 검색 타입만 지정 (전체 목록 반환 확인)
+GET {{host}}/board/list?searchType=title&keyword=
+
+
+### 13-2. 한글 키워드 검색
+GET {{host}}/board/list?searchType=title&keyword=게시글
+
+
+### 13-3. 특수문자 키워드 (SQL Injection 방어 확인 — MyBatis #{} 처리)
+GET {{host}}/board/list?searchType=title&keyword=' OR '1'='1
+
+
+### 13-4. 긴 키워드 검색 (255자 초과)
+GET {{host}}/board/list?searchType=content&keyword=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+
+### 13-5. searchType 없이 keyword만 지정 (전체 목록 반환)
+GET {{host}}/board/list?keyword=Spring
+
+
+### 13-6. 존재하지 않는 검색 결과 (빈 목록 확인)
+GET {{host}}/board/list?searchType=title&keyword=존재하지않는제목XYZ
+
+
+### ============================================================
+### 14. 게시글 등록 — 추가 검증 케이스
+### ============================================================
+
+### 14-1. 제목만 없는 경우 (Bean Validation: @NotBlank)
+POST {{host}}/board/create
+Content-Type: application/x-www-form-urlencoded
+
+title=&content=내용은 있음&author=admin
+
+
+### 14-2. 내용만 없는 경우 (Bean Validation: @NotBlank)
+POST {{host}}/board/create
+Content-Type: application/x-www-form-urlencoded
+
+title=제목은 있음&content=&author=admin
+
+
+### 14-3. 제목이 공백만인 경우 (trim 후 빈 문자열)
+POST {{host}}/board/create
+Content-Type: application/x-www-form-urlencoded
+
+title=     &content=내용&author=admin
+
+
+### 14-4. 파일 첨부 포함 게시글 등록 (multipart/form-data)
+# 실제 파일 경로를 <> 안에 지정하여 사용
+# POST {{host}}/board/create
+# Content-Type: multipart/form-data; boundary=WebAppBoundary
+#
+# --WebAppBoundary
+# Content-Disposition: form-data; name="title"
+#
+# 파일 첨부 테스트 게시글
+# --WebAppBoundary
+# Content-Disposition: form-data; name="content"
+#
+# 파일이 첨부된 게시글입니다.
+# --WebAppBoundary
+# Content-Disposition: form-data; name="author"
+#
+# admin
+# --WebAppBoundary
+# Content-Disposition: form-data; name="file"; filename="test.txt"
+# Content-Type: text/plain
+#
+# 테스트 파일 내용입니다.
+# --WebAppBoundary--
+
+
+### ============================================================
+### 15. 게시글 수정 — 추가 검증 케이스
+### ============================================================
+
+### 15-1. 수정 시 제목 비움 (Bean Validation 실패 확인)
+POST {{host}}/board/edit/1
+Content-Type: application/x-www-form-urlencoded
+
+title=&content=내용&author=admin
+
+
+### 15-2. 존재하지 않는 게시글 수정 시도 (404 에러 페이지 확인)
+POST {{host}}/board/edit/99999
+Content-Type: application/x-www-form-urlencoded
+
+title=수정 제목&content=수정 내용&author=admin
+
+
+### 15-3. 존재하지 않는 게시글 수정 폼 접근
+GET {{host}}/board/edit/99999
+
+
+### ============================================================
+### 16. 게시글 삭제 — 추가 케이스
+### ============================================================
+
+### 16-1. 존재하지 않는 게시글 삭제 시도 (에러 처리 확인)
+POST {{host}}/board/delete/99999
+
+
+### ============================================================
+### 17. 보안 테스트
+### ============================================================
+
+### 17-1. XSS 시도 — 제목에 스크립트 태그 (Thymeleaf th:text 이스케이프 확인)
+POST {{host}}/board/create
+Content-Type: application/x-www-form-urlencoded
+
+title=<script>alert('XSS')</script>&content=XSS 테스트 내용&author=admin
+
+
+### 17-2. SQL Injection 시도 — 로그인 (PreparedStatement 방어 확인)
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+loginId=admin' OR '1'='1&password=anything
+
+
+### 17-3. 빈 loginId로 로그인 시도
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+loginId=&password=1234
+
+
+### 17-4. 빈 password로 로그인 시도
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+loginId=admin&password=
+
+
+### 17-5. 경로 순회 시도 — 파일 다운로드
+GET {{host}}/board/download/../../etc/passwd
+
+
+### ============================================================
+### 18. 동시성 / 연속 요청 시나리오
+### ============================================================
+
+### 18-1. 로그인 후 바로 /login 재접근 (세션 있는 상태)
+# 이미 로그인 된 상태에서 /login 접근 → /board/list 로 리다이렉트 확인
+GET {{host}}/login
+
+
+### 18-2. 연속 로그인 요청 (세션 중복 생성 방지 확인)
+POST {{host}}/login
+Content-Type: application/x-www-form-urlencoded
+
+loginId=admin&password=1234
+
+
+### ============================================================
+### 19. API 응답 형식 확인
+### ============================================================
+
+### 19-1. Accept: text/html 명시 (기본 동작 확인)
+GET {{host}}/board/list
+Accept: text/html, application/xhtml+xml
+
+
+### 19-2. 게시글 목록 — 정렬 기준 없음 (기본 최신순)
+GET {{host}}/board/list?page=1
+
+
+### 19-3. 존재하는 게시글 범위 내 최대 ID 조회 (데이터 25건 기준)
+GET {{host}}/board/detail/25

@@ -1,0 +1,85 @@
+<!-- detail.html — 게시글 상세 화면 -->
+<!-- Week 10 — Spring MVC 패턴 게시판 CRUD -->
+<!-- Week 11 — 첨부파일 다운로드 링크 추가 -->
+<!-- 경로: src/main/resources/templates/board/detail.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{board.detail.title}">게시글 상세</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+    <div class="container">
+        <h1 th:text="#{board.detail.title}">게시글 상세</h1>
+
+        <!-- 상단 네비게이션 -->
+        <div class="top-bar">
+            <span>
+                <a th:href="@{/}" th:text="#{nav.home}">홈</a> |
+                <a th:href="@{/board/list}" th:text="#{nav.board}">게시판</a>
+            </span>
+            <span>
+                <form th:action="@{/logout}" method="post" style="display:inline;">
+                    <button type="submit" class="link-btn" th:text="#{nav.logout}">로그아웃</button>
+                </form>
+                |
+                <a th:href="@{/board/list(lang='ko')}" th:text="#{lang.ko}">한국어</a> |
+                <a th:href="@{/board/list(lang='en')}" th:text="#{lang.en}">English</a>
+            </span>
+        </div>
+
+        <div class="detail-section">
+            <div class="field">
+                <span class="label" th:text="#{board.form.title}">제목</span>:
+                <span th:text="${board.title}">제목</span>
+            </div>
+            <div class="field">
+                <span class="label" th:text="#{board.form.author}">작성자</span>:
+                <span th:text="${board.author}">작성자</span>
+            </div>
+            <div class="field">
+                <span class="label" th:text="#{board.list.date}">작성일</span>:
+                <span th:text="${#temporals.format(board.createdAt, 'yyyy-MM-dd HH:mm')}">2026-01-01</span>
+                <!-- 수정일이 작성일과 다르면 수정일도 표시 -->
+                <span th:if="${board.updatedAt != null and board.updatedAt != board.createdAt}"
+                      style="color:#999; margin-left:10px;">
+                    (수정: <span th:text="${#temporals.format(board.updatedAt, 'yyyy-MM-dd HH:mm')}"></span>)
+                </span>
+            </div>
+            <div class="field">
+                <span class="label" th:text="#{board.form.content}">내용</span>:
+                <div class="content-box" th:text="${board.content}">내용</div>
+            </div>
+
+            <!-- 첨부파일 다운로드 (Week 11) -->
+            <!-- savedName이 있을 때만 다운로드 링크 표시 -->
+            <div class="field" th:if="${board.savedName != null and board.savedName != ''}">
+                <span class="label" th:text="#{board.detail.file}">첨부파일</span>:
+                <!-- th:href: /board/download/{UUID_파일명} 으로 링크 생성 -->
+                <!-- th:text: 원본 파일명으로 링크 텍스트 표시 -->
+                <a th:href="@{/board/download/{savedName}(savedName=${board.savedName})}"
+                   th:text="${board.fileName}"
+                   class="download-link">파일 다운로드</a>
+            </div>
+            <!-- 첨부파일이 없을 때 -->
+            <div class="field" th:unless="${board.savedName != null and board.savedName != ''}">
+                <span class="label" th:text="#{board.detail.file}">첨부파일</span>:
+                <span class="text-muted" th:text="#{board.detail.no.file}">첨부파일 없음</span>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <!-- 수정 버튼 -->
+            <a th:href="@{/board/edit/{id}(id=${board.id})}" class="btn btn-edit" th:text="#{board.detail.edit}">수정</a>
+            <!-- 삭제 버튼 — POST 폼으로 처리 -->
+            <form th:action="@{/board/delete/{id}(id=${board.id})}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-delete"
+                        th:onclick="|return confirm('[[#{board.detail.confirm.delete}]]')|" th:text="#{board.detail.delete}">삭제</button>
+            </form>
+            <!-- 목록 버튼 -->
+            <a th:href="@{/board/list}" class="btn btn-list" th:text="#{board.detail.back}">목록</a>
+        </div>
+    </div>
+</body>
+</html>

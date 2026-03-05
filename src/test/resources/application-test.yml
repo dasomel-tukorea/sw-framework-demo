@@ -1,0 +1,35 @@
+# application-test.yml — 테스트 전용 설정 (H2 인메모리 DB)
+# Week 13 — 테스트 코드 기초
+#
+# 실행: @ActiveProfiles("test") 또는 @SpringBootTest와 함께 자동 적용
+# MySQL이 없어도 테스트 가능 — CI/CD 환경에서 유용
+
+spring:
+  # H2 인메모리 DB — 테스트 실행 시 자동 생성, 종료 후 자동 삭제
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # 테스트 시작 시 스키마 + 초기 데이터 자동 실행
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:sql/schema-h2.sql
+      data-locations: classpath:sql/data.sql
+
+  # H2 콘솔 비활성화 (테스트 환경에서는 불필요)
+  h2:
+    console:
+      enabled: false
+
+# 파일 업로드 경로 — 테스트 전용 임시 디렉토리
+file:
+  upload-dir: ./build/test-uploads
+
+# 로깅 레벨 — 테스트 중 SQL 로그 최소화
+logging:
+  level:
+    kr.ac.tukorea.swframework: INFO
+    kr.ac.tukorea.swframework.mapper: DEBUG  # SQL은 확인 가능하게 유지

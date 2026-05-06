@@ -1,15 +1,23 @@
-# ERD (개체-관계 다이어그램) — 게시판 프로젝트
+# ERD 및 테이블 정의서 — 게시판 프로젝트
 
-## 1. 개요
+> **Entity-Relationship Diagram & DDL**
+> SW 프레임워크 · **W09 과제** · 제출 기한 **W10 수업 시작 전**
+> 한국공학대학교 IT경영전공 · 2026학년도 1학기
 
-본 문서는 게시판 웹 애플리케이션의 데이터베이스 설계를 정의한다.
+---
+
+## 1. 프로젝트 기본 정보
 
 | 항목 | 내용 |
 |---|---|
+| 프로젝트명 | Spring Boot 게시판 (sw-framework-demo) |
+| 팀명 / 팀장 | 예시팀 / 홍길동 |
 | DBMS | MySQL 8.x |
-| 문자셋 | utf8mb4 |
-| Collation | utf8mb4_general_ci |
+| 문자셋 / Collation | utf8mb4 / utf8mb4_general_ci |
 | 스토리지 엔진 | InnoDB |
+| 테이블 수 | 2개 (users · board) |
+
+본 문서는 **W08 요구사항 정의서**의 DB 테이블 초안(users · board)을 ERD와 DDL로 확정한 산출물이다.
 
 ---
 
@@ -225,3 +233,16 @@ public class BoardDTO {
     // getter/setter 생략
 }
 ```
+
+---
+
+## ✅ 제출 전 체크리스트
+
+- [x] Mermaid ERD 코드 작성 (GitHub에서 렌더링 확인)
+- [x] 모든 테이블에 PK 정의
+- [x] FK 관계 표시 및 참조 무결성 확인 (`ON UPDATE CASCADE` / `ON DELETE RESTRICT`)
+- [x] NOT NULL · UNIQUE 제약 조건 명시
+- [x] CREATE TABLE DDL 작성 (MySQL 기준)
+- [x] W08 요구사항 정의서의 테이블 초안과 일치
+- [x] DDL 실행 테스트 완료 (MySQL에서 오류 없이 생성)
+- [x] GitHub 저장소 `docs/W09_ERD.md` + `sql/schema.sql`로 업로드
